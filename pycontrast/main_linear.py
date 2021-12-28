@@ -12,7 +12,7 @@ from learning.linear_trainer import LinearTrainer
 from networks.build_backbone import build_model
 from networks.build_linear import build_linear
 from datasets.util import build_linear_loader
-
+import itertools
 
 def main():
     args = TestOptions().parse()
@@ -43,7 +43,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # build criterion and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
-    optimizer = torch.optim.SGD(classifier.parameters(),
+    optimizer = torch.optim.SGD(itertools.chain(model.parameters(), classifier.parameters()),
                                 lr=args.learning_rate,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)

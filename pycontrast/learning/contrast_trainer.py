@@ -252,7 +252,7 @@ class ContrastTrainer(BaseTrainer):
                 epoch, idx, len(train_loader), optimizer)
 
             # split into two crops
-            x1, x2 = torch.split(inputs, [3, 3], dim=1)
+            x1, x2 = torch.split(inputs, [1, 1], dim=1)
 
             # shuffle BN for momentum encoder
             k, all_k = self._shuffle_bn(x2, model_ema)

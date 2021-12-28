@@ -7,10 +7,11 @@ from PIL import Image, ImageFilter
 from skimage import color
 from torchvision import transforms, datasets
 
-from .dataset import ImageFolderInstance
+from .dataset import ImageFolderInstance, TrainWaferDataset, TestWaferDataset
 from .RandAugment import rand_augment_transform
 
 import torch.nn as nn
+import pandas as pd
 
 
 class StackTransform(object):
@@ -243,6 +244,7 @@ def build_transforms(aug, modal, use_memory_bank=True):
 
     if aug == 'A':
         # used in InsDis, MoCo, PIRL
+
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop(224, scale=(crop, 1.)),
             transforms.RandomHorizontalFlip(),
@@ -251,6 +253,10 @@ def build_transforms(aug, modal, use_memory_bank=True):
             color_transfer,
             transforms.ToTensor(),
             normalize,
+        ])
+        train_transform = transforms.Compose([transforms.RandomRotation(180),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0], [1])
         ])
     elif aug == 'B':
         # used in MoCoV2
@@ -357,10 +363,26 @@ def build_contrast_loader(opt, ngpus_per_node):
             jigsaw_transform=jigsaw_transform
         )
     else:
-        train_dataset = ImageFolderInstance(
-            train_dir, transform=train_transform,
-            two_crop=(not use_memory_bank)
-        )
+        df = pd.read_pickle('./datasets/train/train.pkl')
+        #mapping_type={'Center':0,'Donut':1,'Edge-Loc':2,'Edge-Ring':3,'Loc':4,'Random':5,'Scratch':6,'Near-full':7,'none':8}
+        #mapping_type={'Center':0,'Donut':10,'Edge-Loc':1,'Edge-Ring':2,'Loc':3,'Random':4,'Scratch':5,'Near-full':10,'none':6}
+        #df['failureNum']=df.failureType
+        #df['trainTestNum']=df.trianTestLabel
+        #mapping_traintest={'Training':0,'Test':1}
+        #df.replace({'failureNum':mapping_type, 'trainTestNum':mapping_traintest}, inplace=True)
+        #df_withlabel = df[(df['failureNum']>=0) & (df['failureNum']<=5) & (df['trainTestNum']==0)]
+        #df_withlabel.reset_index(inplace=True)
+        train_x = np.array(df["waferMap"])
+        train_dataset = TrainWaferDataset(train_x,
+                    transform=transforms.Compose([transforms.RandomRotation(180),
+                    transforms.ToTensor(),
+                    transforms.Normalize([0], [1])]))
+
+
+        # train_dataset = ImageFolderInstance(
+        #     train_dir, transform=train_transform,
+        #     two_crop=(not use_memory_bank)
+        # )
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
 
@@ -417,17 +439,49 @@ def build_linear_loader(opt, ngpus_per_node):
     data_folder = opt.data_folder
     train_dir = os.path.join(data_folder, 'train')
     val_dir = os.path.join(data_folder, 'val')
-    train_dataset = datasets.ImageFolder(train_dir, train_transform)
-    val_dataset = datasets.ImageFolder(
-        val_dir,
-        transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            color_transfer,
-            transforms.ToTensor(),
-            normalize,
-        ])
-    )
+
+    # train_dataset = datasets.ImageFolder(train_dir, train_transform)
+
+    # val_dataset = datasets.ImageFolder(
+    #     val_dir,
+    #     transforms.Compose([
+    #         transforms.Resize(256),
+    #         transforms.CenterCrop(224),
+    #         color_transfer,
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ])
+    # )
+
+    df = pd.read_pickle("LSWMD.pkl")
+    df_train = pd.read_pickle("./datasets/train/train.pkl")
+    df_test = pd.read_pickle("./datasets/test/test.pkl")
+    #mapping_type={'Center':0,'Donut':1,'Edge-Loc':2,'Edge-Ring':3,'Loc':4,'Random':5,'Scratch':6,'Near-full':7,'none':8}
+    mapping_type={'Center':0,'Donut':10,'Edge-Loc':1,'Edge-Ring':2,'Loc':3,'Random':4,'Scratch':5,'Near-full':10,'none':6}
+   
+    df_train['failureNum']=df_train.failureType
+    df_test['failureNum']=df_test.failureType
+    df_train['trainTestNum']=df_train.trianTestLabel
+    df_test['trainTestNum']=df_test.trianTestLabel
+
+    mapping_traintest={'Training':0,'Test':1}
+    df_train.replace({'failureNum':mapping_type, 'trainTestNum':mapping_traintest}, inplace=True)
+    df_test.replace({'failureNum':mapping_type, 'trainTestNum':mapping_traintest}, inplace=True)
+    df_train.reset_index(inplace=True)
+    df_test.reset_index(inplace=True)
+    train_x = np.array(df_train["waferMap"])
+    train_y = np.array(df_train["failureNum"])
+    test_x = np.array(df_test["waferMap"])
+    test_y = np.array(df_test['failureNum'])
+    train_dataset = TestWaferDataset(train_x, train_y,
+                transform=transforms.Compose([transforms.RandomRotation(180),
+                transforms.ToTensor(),
+                transforms.Normalize([0], [1])]))  
+
+    val_dataset = TestWaferDataset(test_x, test_y,
+                transform=transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize([0], [1])]))  
 
     # loader
     batch_size = int(opt.batch_size / opt.world_size)

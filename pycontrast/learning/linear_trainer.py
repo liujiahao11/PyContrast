@@ -135,7 +135,7 @@ class LinearTrainer(BaseTrainer):
         time1 = time.time()
         args = self.args
 
-        model.eval()
+        model.train()
         classifier.train()
 
         batch_time = AverageMeter()
@@ -153,9 +153,9 @@ class LinearTrainer(BaseTrainer):
             target = target.cuda(args.gpu, non_blocking=True)
 
             # forward
-            with torch.no_grad():
-                feat = model(x=input, mode=2)
-                feat = feat.detach()
+            #with torch.no_grad():
+            feat = model(x=input, mode=2)
+            #feat = feat.detach()
 
             output = classifier(feat)
             loss = criterion(output, target)

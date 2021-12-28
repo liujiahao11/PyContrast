@@ -75,7 +75,7 @@ class BaseOptions(object):
                                  'and their wider variants, resnet50x4')
         parser.add_argument('-d', '--feat_dim', default=128, type=int,
                             help='feature dimension for contrastive loss')
-        parser.add_argument('-k', '--nce_k', default=65536, type=int,
+        parser.add_argument('-k', '--nce_k', default=17000, type=int,
                             help='number of negatives')
         parser.add_argument('-m', '--nce_m', default=0.5, type=float,
                             help='momentum for memory update')

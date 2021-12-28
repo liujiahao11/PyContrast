@@ -14,7 +14,7 @@ class TestOptions(BaseOptions):
                             help='linear evaluation augmentation')
         parser.add_argument('--crop', type=float, default=0.2,
                             help='crop threshold for RandomResizedCrop')
-        parser.add_argument('--n_class', type=int, default=1000,
+        parser.add_argument('--n_class', type=int, default=6,
                             help='number of classes for linear probing')
 
         parser.set_defaults(epochs=60)

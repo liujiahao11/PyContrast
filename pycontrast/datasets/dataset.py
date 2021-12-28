@@ -3,7 +3,8 @@ from __future__ import print_function
 import numpy as np
 import torch
 from torchvision import datasets
-
+from torch.utils.data.dataset import Dataset
+from PIL import Image, ImageFilter
 
 class ImageFolderInstance(datasets.ImageFolder):
     """Folder datasets which returns the index of the image (for memory_bank)
@@ -43,3 +44,50 @@ class ImageFolderInstance(datasets.ImageFolder):
             return img, index, jigsaw_image
         else:
             return img, index
+
+
+class TrainWaferDataset(Dataset):
+    def __init__(self, dt_x, transform=None):
+        self.dt_x = dt_x
+        if transform is not None:
+            self.transform = transform
+        else:
+            self.transform = None
+
+    def __getitem__(self, index):
+        img = Image.fromarray(self.dt_x[index]).resize((224,224))
+        #denoise
+        #img = img.filter(ImageFilter.MedianFilter(size=3))
+        if self.transform is not None:
+            #aug twice to get 2 version of the same img
+            img1 = self.transform(img)
+            img2 = self.transform(img)
+        return torch.cat([img1, img2], dim=0)*255/2.0, index
+
+
+    def __len__(self):
+        return self.dt_x.shape[0]
+
+class TestWaferDataset(Dataset):
+    def __init__(self, dt_x, dt_y, transform=None):
+        self.dt_x = dt_x
+        self.dt_y = dt_y
+        if transform is not None:
+            self.transform = transform
+        else:
+            self.transform = None
+
+    def __getitem__(self, index):
+        img = Image.fromarray(self.dt_x[index]).resize((224,224))
+        #denoise
+        #img = img.filter(ImageFilter.MedianFilter(size=3))
+        if self.transform is not None:
+            #aug twice to get 2 version of the same img
+            img1 = self.transform(img)
+        lbl = self.dt_y[index]
+        return img1*255/2.0, torch.tensor(lbl, dtype=torch.int64)
+
+
+    def __len__(self):
+        return self.dt_x.shape[0]
+

@@ -1,1 +1,7 @@
 .idea/
+.DS_Store
+pycontrast/.DS_Store
+pycontrast/LSWMD.pkl
+pycontrast/datasets/test/
+pycontrast/datasets/train/
+pycontrast/nohup.out

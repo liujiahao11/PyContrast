@@ -5,3 +5,5 @@ pycontrast/LSWMD.pkl
 pycontrast/datasets/test/
 pycontrast/datasets/train/
 pycontrast/nohup.out
+pycontrast/run.sh
+pycontrast/run_linear.sh

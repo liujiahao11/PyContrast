@@ -9,6 +9,8 @@ from collections import OrderedDict
 
 from .util import AverageMeter, accuracy
 from .base_trainer import BaseTrainer
+import numpy as np
+from sklearn.metrics import confusion_matrix
 
 
 class LinearTrainer(BaseTrainer):
@@ -134,8 +136,10 @@ class LinearTrainer(BaseTrainer):
               criterion, optimizer):
         time1 = time.time()
         args = self.args
-
-        model.train()
+        if args.fine_tune:
+            model.train()
+        else:
+            model.eval()
         classifier.train()
 
         batch_time = AverageMeter()
@@ -153,9 +157,12 @@ class LinearTrainer(BaseTrainer):
             target = target.cuda(args.gpu, non_blocking=True)
 
             # forward
-            #with torch.no_grad():
-            feat = model(x=input, mode=2)
-            #feat = feat.detach()
+            if args.fine_tune:
+                feat = model(x=input, mode=2)
+            else:
+                with torch.no_grad():
+                    feat = model(x=input, mode=2)
+                    feat = feat.detach()
 
             output = classifier(feat)
             loss = criterion(output, target)
@@ -204,6 +211,8 @@ class LinearTrainer(BaseTrainer):
 
         with torch.no_grad():
             end = time.time()
+            y = np.array([])
+            t = np.array([])
             for idx, (input, target) in enumerate(val_loader):
                 input = input.float()
                 input = input.cuda(args.gpu, non_blocking=True)
@@ -213,6 +222,9 @@ class LinearTrainer(BaseTrainer):
                 feat = model(x=input, mode=2)
                 output = classifier(feat)
                 loss = criterion(output, target)
+                pred = output.argmax(1)
+                y = np.append(y,pred) 
+                t = np.append(t,target.cpu().numpy())
 
                 # measure accuracy and record loss
                 acc1, acc5 = accuracy(output, target, topk=(1, 5))
@@ -236,7 +248,15 @@ class LinearTrainer(BaseTrainer):
             print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
                   .format(top1=top1, top5=top5))
 
+
         time2 = time.time()
         print('eval epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
+        y = np.array(y).reshape((-1,1))
+        t = np.array(t).reshape((-1,1))
+        mat = confusion_matrix(y.astype('int'),t.astype('int'))
+        s = np.sum(mat,axis=1)
+        result = [mat[i,i]/s[i] for i in range(6)]
+        print('con_mat:',mat)
+        print('arr_per_class:',result)
 
         return top1.avg, top5.avg, losses.avg

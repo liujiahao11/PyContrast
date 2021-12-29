@@ -16,6 +16,8 @@ class TestOptions(BaseOptions):
                             help='crop threshold for RandomResizedCrop')
         parser.add_argument('--n_class', type=int, default=6,
                             help='number of classes for linear probing')
+        parser.add_argument('--fine_tune', type=bool, default=False,
+                            help='to update model or not')
 
         parser.set_defaults(epochs=60)
         parser.set_defaults(learning_rate=30)

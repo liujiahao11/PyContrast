@@ -45,10 +45,17 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # build criterion and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
-    optimizer = torch.optim.SGD(itertools.chain(model.parameters(), classifier.parameters()),
+    if args.fine_tune:
+        optimizer = torch.optim.SGD(itertools.chain(model.parameters(), classifier.parameters()),
                                 lr=args.learning_rate,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
+    else:
+        optimizer = torch.optim.SGD(classifier.parameters(),
+                                lr=args.learning_rate,
+                                momentum=args.momentum,
+                                weight_decay=args.weight_decay)
+
 
     # load pre-trained ckpt for encoder
     model = trainer.load_encoder_weights(model)

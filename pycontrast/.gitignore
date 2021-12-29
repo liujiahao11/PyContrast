@@ -1,7 +1,7 @@
 .idea/
 tmp.py
 data/
-tb/
+#tb/
 save/
 
 # Byte-compiled / optimized / DLL files

@@ -222,7 +222,7 @@ class LinearTrainer(BaseTrainer):
                 feat = model(x=input, mode=2)
                 output = classifier(feat)
                 loss = criterion(output, target)
-                pred = output.argmax(1)
+                pred = output.argmax(1).cpu().numpy()
                 y = np.append(y,pred) 
                 t = np.append(t,target.cpu().numpy())
 

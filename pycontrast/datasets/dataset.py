@@ -68,6 +68,28 @@ class TrainWaferDataset(Dataset):
     def __len__(self):
         return self.dt_x.shape[0]
 
+class TrainWaferDataset_1(Dataset):
+    def __init__(self, dt_x, transform=None):
+        self.dt_x = dt_x
+        if transform is not None:
+            self.transform = transform
+        else:
+            self.transform = None
+
+    def __getitem__(self, index):
+        img = Image.fromarray(self.dt_x[index]).resize((224,224))
+        #denoise
+        img_2 = img.filter(ImageFilter.MedianFilter(size=3))
+        if self.transform is not None:
+            #aug twice to get 2 version of the same img
+            img1 = self.transform(img)
+            img2 = self.transform(img_2)
+        return torch.cat([img1, img2], dim=0)*255/2.0, index
+
+
+    def __len__(self):
+        return self.dt_x.shape[0]
+
 class TestWaferDataset(Dataset):
     def __init__(self, dt_x, dt_y, transform=None):
         self.dt_x = dt_x

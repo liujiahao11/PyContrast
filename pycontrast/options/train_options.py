@@ -18,6 +18,10 @@ class TrainOptions(BaseOptions):
                             help='using mixed precision')
         parser.add_argument('--opt_level', type=str, default='O2',
                             choices=['O1', 'O2'])
+        parser.add_argument('--rot_filter', default='rot', type=str,
+                            help='use rotate or medium filter to augment data')
+        parser.add_argument('--use_all', default='label', type=str,
+                            help='to use all data or not')
 
         return parser
 

@@ -7,7 +7,7 @@ from PIL import Image, ImageFilter
 from skimage import color
 from torchvision import transforms, datasets
 
-from .dataset import ImageFolderInstance, TrainWaferDataset, TestWaferDataset
+from .dataset import ImageFolderInstance, TrainWaferDataset, TestWaferDataset, TrainWaferDataset_1
 from .RandAugment import rand_augment_transform
 
 import torch.nn as nn
@@ -351,6 +351,8 @@ def build_contrast_loader(opt, ngpus_per_node):
     use_memory_bank = (opt.mem == 'bank')
     batch_size = int(opt.batch_size / opt.world_size)
     num_workers = int((opt.num_workers + ngpus_per_node - 1) / ngpus_per_node)
+    rot_filter = opt.rot_filter
+    use_all = opt.use_all
 
     train_transform, jigsaw_transform = \
         build_transforms(aug, modal, use_memory_bank)
@@ -363,20 +365,31 @@ def build_contrast_loader(opt, ngpus_per_node):
             jigsaw_transform=jigsaw_transform
         )
     else:
-        df = pd.read_pickle('./datasets/train/train.pkl')
-        #mapping_type={'Center':0,'Donut':1,'Edge-Loc':2,'Edge-Ring':3,'Loc':4,'Random':5,'Scratch':6,'Near-full':7,'none':8}
-        #mapping_type={'Center':0,'Donut':10,'Edge-Loc':1,'Edge-Ring':2,'Loc':3,'Random':4,'Scratch':5,'Near-full':10,'none':6}
-        #df['failureNum']=df.failureType
-        #df['trainTestNum']=df.trianTestLabel
-        #mapping_traintest={'Training':0,'Test':1}
-        #df.replace({'failureNum':mapping_type, 'trainTestNum':mapping_traintest}, inplace=True)
-        #df_withlabel = df[(df['failureNum']>=0) & (df['failureNum']<=5) & (df['trainTestNum']==0)]
-        #df_withlabel.reset_index(inplace=True)
-        train_x = np.array(df["waferMap"])
-        train_dataset = TrainWaferDataset(train_x,
-                    transform=transforms.Compose([transforms.RandomRotation(180),
-                    transforms.ToTensor(),
-                    transforms.Normalize([0], [1])]))
+        if use_all=='label':
+            df = pd.read_pickle('./datasets/train/train.pkl')
+            train_x = np.array(df["waferMap"])
+        else:
+            df1 = pd.read_pickle('./datasets/train/train.pkl')
+            df2 = pd.read_pickle('./datasets/train/none.pkl')
+            df = pd.concat([df1,df2])
+            train_x = np.array(df["waferMap"])
+        if rot_filter=='rot':
+            
+            train_dataset = TrainWaferDataset(train_x,
+                        transform=transforms.Compose([transforms.RandomRotation(180),
+                        transforms.ToTensor(),
+                        transforms.Normalize([0], [1])]))
+        elif rot_filter=='filter':
+            train_dataset = TrainWaferDataset_1(train_x,
+                        transform=transforms.Compose([transforms.ToTensor(),
+                        transforms.Normalize([0], [1])]))
+        else:
+            train_dataset = TrainWaferDataset_1(train_x,
+                        transform=transforms.Compose([transforms.RandomRotation(180),
+                        transforms.ToTensor(),
+                        transforms.Normalize([0], [1])]))
+
+
 
 
         # train_dataset = ImageFolderInstance(

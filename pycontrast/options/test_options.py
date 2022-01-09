@@ -18,6 +18,8 @@ class TestOptions(BaseOptions):
                             help='number of classes for linear probing')
         parser.add_argument('--fine_tune', type=bool, default=False,
                             help='to update model or not')
+        parser.add_argument('--ratio', type=float, default=1,
+                            help='ratio of sample to train linear')
 
         parser.set_defaults(epochs=60)
         parser.set_defaults(learning_rate=30)

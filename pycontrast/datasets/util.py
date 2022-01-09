@@ -410,6 +410,8 @@ def build_contrast_loader(opt, ngpus_per_node):
 
 def build_linear_loader(opt, ngpus_per_node):
     """build loaders for linear evaluation"""
+    ratio = opt.ratio
+    fine_tune = opt.fine_tune
     # transform
     if opt.modal == 'RGB':
         mean = [0.485, 0.456, 0.406]
@@ -466,7 +468,7 @@ def build_linear_loader(opt, ngpus_per_node):
     #     ])
     # )
 
-    df = pd.read_pickle("LSWMD.pkl")
+    # df = pd.read_pickle("LSWMD.pkl")
     df_train = pd.read_pickle("./datasets/train/train.pkl")
     df_test = pd.read_pickle("./datasets/test/test.pkl")
     #mapping_type={'Center':0,'Donut':1,'Edge-Loc':2,'Edge-Ring':3,'Loc':4,'Random':5,'Scratch':6,'Near-full':7,'none':8}
@@ -480,8 +482,12 @@ def build_linear_loader(opt, ngpus_per_node):
     mapping_traintest={'Training':0,'Test':1}
     df_train.replace({'failureNum':mapping_type, 'trainTestNum':mapping_traintest}, inplace=True)
     df_test.replace({'failureNum':mapping_type, 'trainTestNum':mapping_traintest}, inplace=True)
+    #only activate this with fine_tune
+    if ratio<1 and fine_tune:
+        df_train = df_train.sample(frac=ratio)
     df_train.reset_index(inplace=True)
     df_test.reset_index(inplace=True)
+
     train_x = np.array(df_train["waferMap"])
     train_y = np.array(df_train["failureNum"])
     test_x = np.array(df_test["waferMap"])

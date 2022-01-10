@@ -46,7 +46,7 @@ class LinearTrainer(BaseTrainer):
         args = self.args
         model = model.cuda()
         classifier = classifier.cuda()
-        if args.fune_tune:
+        if args.fine_tune:
             model.train()
         else:
             model.eval()

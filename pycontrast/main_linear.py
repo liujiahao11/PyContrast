@@ -45,7 +45,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # build criterion and optimizer
     criterion = nn.CrossEntropyLoss().cuda()
-    if args.fine_tune:
+    if args.fine_tune=='yes':
         optimizer = torch.optim.SGD(itertools.chain(model.parameters(), classifier.parameters()),
                                 lr=args.learning_rate,
                                 momentum=args.momentum,

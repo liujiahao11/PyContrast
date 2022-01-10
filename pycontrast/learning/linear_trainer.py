@@ -46,7 +46,7 @@ class LinearTrainer(BaseTrainer):
         args = self.args
         model = model.cuda()
         classifier = classifier.cuda()
-        if args.fine_tune:
+        if args.fine_tune=='yes':
             model.train()
         else:
             model.eval()
@@ -139,7 +139,7 @@ class LinearTrainer(BaseTrainer):
               criterion, optimizer):
         time1 = time.time()
         args = self.args
-        if args.fine_tune:
+        if args.fine_tune=='yes':
             model.train()
         else:
             model.eval()
@@ -160,7 +160,7 @@ class LinearTrainer(BaseTrainer):
             target = target.cuda(args.gpu, non_blocking=True)
 
             # forward
-            if args.fine_tune:
+            if args.fine_tune=='yes':
                 feat = model(x=input, mode=2)
             else:
                 with torch.no_grad():

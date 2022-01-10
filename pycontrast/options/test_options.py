@@ -16,7 +16,7 @@ class TestOptions(BaseOptions):
                             help='crop threshold for RandomResizedCrop')
         parser.add_argument('--n_class', type=int, default=6,
                             help='number of classes for linear probing')
-        parser.add_argument('--fine_tune', type=bool, default=False,
+        parser.add_argument('--fine_tune', type=str, default='no',
                             help='to update model or not')
         parser.add_argument('--ratio', type=float, default=1,
                             help='ratio of sample to train linear')

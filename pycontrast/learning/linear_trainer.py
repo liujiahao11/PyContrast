@@ -46,7 +46,10 @@ class LinearTrainer(BaseTrainer):
         args = self.args
         model = model.cuda()
         classifier = classifier.cuda()
-        model.eval()
+        if args.fune_tune:
+            model.train()
+        else:
+            model.eval()
         model = DDP(model, device_ids=[args.gpu])
         classifier = DDP(classifier, device_ids=[args.gpu])
 

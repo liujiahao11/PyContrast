@@ -22,7 +22,7 @@ class TestOptions(BaseOptions):
                             help='ratio of sample to train linear')
 
         parser.set_defaults(epochs=60)
-        parser.set_defaults(learning_rate=0.1)#30
+        parser.set_defaults(learning_rate=30)#30
         parser.set_defaults(lr_decay_epochs='30,40,50')
         parser.set_defaults(lr_decay_rate=0.2)
         parser.set_defaults(weight_decay=0)

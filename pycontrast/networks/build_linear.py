@@ -18,5 +18,5 @@ def build_linear(opt):
                  nn.Linear(int(n_feat//2**5),int(n_feat//2**6)),
                  nn.Linear(int(n_feat//2**6),int(n_feat//2**7)),
                  nn.Linear(int(n_feat//2**7),n_class),)
-    # classifier = nn.Linear(n_feat, n_class)
+    classifier = nn.Linear(n_feat, n_class)
     return classifier

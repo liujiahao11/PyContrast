@@ -50,8 +50,8 @@ class LinearTrainer(BaseTrainer):
             model.train()
         else:
             model.eval()
-        model = DDP(model, device_ids=[args.gpu])
-        classifier = DDP(classifier, device_ids=[args.gpu])
+        # model = DDP(model, device_ids=[args.gpu])
+        # classifier = DDP(classifier, device_ids=[args.gpu])
 
         return model, classifier
 

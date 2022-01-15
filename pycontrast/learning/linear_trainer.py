@@ -256,7 +256,7 @@ class LinearTrainer(BaseTrainer):
         print('eval epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
         y = np.array(y).reshape((-1,1))
         t = np.array(t).reshape((-1,1))
-        mat = confusion_matrix(y.astype('int'),t.astype('int'))
+        mat = confusion_matrix(t.astype('int'),y.astype('int'))
         s = np.sum(mat,axis=1)
         result = [mat[i,i]/s[i] for i in range(6)]
         print('con_mat:',mat)

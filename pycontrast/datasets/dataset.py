@@ -113,3 +113,68 @@ class TestWaferDataset(Dataset):
     def __len__(self):
         return self.dt_x.shape[0]
 
+
+
+class TrainWaferDataset_2(Dataset):
+    def __init__(self, dt_x, transform=None):
+        self.dt_x = dt_x
+        if transform is not None:
+            self.transform = transform
+        else:
+            self.transform = None
+
+    def __getitem__(self, index):
+        img1 = Image.fromarray(self.dt_x[index]).resize((224,224))
+
+        img = np.array(img1)
+        #denoise
+        # img_2 = img.filter(ImageFilter.MedianFilter(size=3))
+        n_grid = 3
+        img_size = 244
+        crop_size = 64
+        grid_size = int(img_size / n_grid)
+        side = grid_size-crop_size
+        yy, xx = np.meshgrid(np.arange(n_grid), np.arange(n_grid))
+        yy_ = np.reshape(yy * self.grid_size, (n_grid * n_grid,))
+        xx_ = np.reshape(xx * self.grid_size, (n_grid * n_grid,))
+        r_x = np.random.randint(0, side + 1, n_grid * n_grid)
+        r_y = np.random.randint(0, side + 1, n_grid * n_grid)
+        crops = []
+        for i in range(n_grid * n_grid):
+            crops.append(img[xx_[i] + r_x[i]: xx_[i] + r_x[i] + crop_size,
+                         yy_[i] + r_y[i]: yy_[i] + r_y[i] + crop_size])
+        # crops = [Image.fromarray(crop) for crop in crops]
+        
+        img1 = torch.from_numpy(np.array(img1))
+        img2 = torch.from_numpy(np.array(crops))
+        img2 = img2.view(244,244)
+        
+        return torch.cat([img1, img2], dim=0)/2.0, index
+
+
+    def __len__(self):
+        return self.dt_x.shape[0]
+
+    def __init__(self, n_grid=3, img_size=255, crop_size=64):
+        self.n_grid = n_grid
+        self.img_size = img_size
+        self.crop_size = crop_size
+        self.grid_size = int(img_size / self.n_grid)
+        self.side = self.grid_size - self.crop_size
+
+        yy, xx = np.meshgrid(np.arange(n_grid), np.arange(n_grid))
+        self.yy = np.reshape(yy * self.grid_size, (n_grid * n_grid,))
+        self.xx = np.reshape(xx * self.grid_size, (n_grid * n_grid,))
+
+    def __call__(self, img):
+        r_x = np.random.randint(0, self.side + 1, self.n_grid * self.n_grid)
+        r_y = np.random.randint(0, self.side + 1, self.n_grid * self.n_grid)
+        img = np.asarray(img, np.uint8)
+        crops = []
+        for i in range(self.n_grid * self.n_grid):
+            crops.append(img[self.xx[i] + r_x[i]: self.xx[i] + r_x[i] + self.crop_size,
+                         self.yy[i] + r_y[i]: self.yy[i] + r_y[i] + self.crop_size, :])
+        crops = [Image.fromarray(crop) for crop in crops]
+        return crops
+
+

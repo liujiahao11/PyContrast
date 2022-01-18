@@ -7,7 +7,7 @@ from PIL import Image, ImageFilter
 from skimage import color
 from torchvision import transforms, datasets
 
-from .dataset import ImageFolderInstance, TrainWaferDataset, TestWaferDataset, TrainWaferDataset_1
+from .dataset import ImageFolderInstance, TrainWaferDataset, TestWaferDataset, TrainWaferDataset_1, TrainWaferDataset_2
 from .RandAugment import rand_augment_transform
 
 import torch.nn as nn
@@ -383,11 +383,15 @@ def build_contrast_loader(opt, ngpus_per_node):
             train_dataset = TrainWaferDataset_1(train_x,
                         transform=transforms.Compose([transforms.ToTensor(),
                         transforms.Normalize([0], [1])]))
-        else:
+        elif rot_filter=='rot_filter':
             train_dataset = TrainWaferDataset_1(train_x,
                         transform=transforms.Compose([transforms.RandomRotation(180),
                         transforms.ToTensor(),
                         transforms.Normalize([0], [1])]))
+        else:
+            train_dataset = TrainWaferDataset_2(train_x)
+
+
 
 
 
